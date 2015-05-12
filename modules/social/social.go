@@ -17,6 +17,7 @@ import (
 	"github.com/gogits/gogs/models"
 	"github.com/gogits/gogs/modules/log"
 	"github.com/gogits/gogs/modules/setting"
+	"os"
 )
 
 type BasicUserInfo struct {
@@ -112,6 +113,7 @@ func NewOauthService() {
 		setting.OauthService.OpenShift = true
 		newOpenShiftOauth(socialConfigs["openshift"])
 		enabledOauths = append(enabledOauths, "OpenShift")
+		log.Info("Using OpenShift request URL (%s)", getOpenShiftReqUrl())
 	}
 
 	log.Info("Oauth Service Enabled %s", enabledOauths)
@@ -361,7 +363,8 @@ func (s *SocialOpenShift) UserInfo(token *oauth2.Token, _ *url.URL) (*BasicUserI
 			Name string `json:"name"`
 		} `json:"metadata"`
 	}
-	reqUrl := "https://os1.fabric8.io:8443/osapi/v1beta3/users/~"
+	reqUrl := getOpenShiftReqUrl()
+	log.Info("Using OpenShift URL %s", reqUrl)
 	r, err := transport.Client().Get(reqUrl)
 	if err != nil {
 		return nil, err
@@ -375,4 +378,8 @@ func (s *SocialOpenShift) UserInfo(token *oauth2.Token, _ *url.URL) (*BasicUserI
 		Identity: token.Extra("uid"),
 		Name:     data.Metadata.Name,
 	}, nil
+}
+
+func getOpenShiftReqUrl() string {
+	return os.ExpandEnv("https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/osapi/v1beta3/users/~")
 }
