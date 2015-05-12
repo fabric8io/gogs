@@ -262,6 +262,9 @@ func Oauth2Icon(t int) string {
 		return "fa-qq"
 	case 5:
 		return "fa-weibo"
+	case 6:
+		// TODO add a real icon...
+		return "fa-user"
 	}
 	return ""
 }
@@ -278,6 +281,8 @@ func Oauth2Name(t int) string {
 		return "腾讯 QQ"
 	case 5:
 		return "Weibo"
+	case 6:
+		return "OpenShift"
 	}
 	return ""
 }

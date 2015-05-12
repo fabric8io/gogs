@@ -206,6 +206,12 @@ img.avatar-100 {
 .social-buttons .qq:hover {
   background-color: #3cb3ff;
 }
+.social-buttons .openshift {
+  background-color: #db212f;
+}
+.social-buttons .openshift:hover {
+  background-color: #b21b27;
+}
 .main-wrapper {
   padding: 20px 0 40px;
 }

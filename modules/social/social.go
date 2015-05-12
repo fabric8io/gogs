@@ -45,7 +45,7 @@ func NewOauthService() {
 	setting.OauthService.OauthInfos = make(map[string]*setting.OauthInfo)
 
 	socialConfigs := make(map[string]*oauth2.Options)
-	allOauthes := []string{"github", "google", "qq", "twitter", "weibo"}
+	allOauthes := []string{"github", "google", "qq", "twitter", "weibo", "openshift"}
 	// Load all OAuth config data.
 	for _, name := range allOauthes {
 		sec := setting.Cfg.Section("oauth." + name)
@@ -105,6 +105,13 @@ func NewOauthService() {
 		setting.OauthService.Weibo = true
 		newWeiboOauth(socialConfigs["weibo"])
 		enabledOauths = append(enabledOauths, "Weibo")
+	}
+
+	// Openshift.
+	if setting.Cfg.Section("oauth.openshift").Key("ENABLED").MustBool() {
+		setting.OauthService.OpenShift = true
+		newOpenShiftOauth(socialConfigs["openshift"])
+		enabledOauths = append(enabledOauths, "OpenShift")
 	}
 
 	log.Info("Oauth Service Enabled %s", enabledOauths)
@@ -329,5 +336,43 @@ func (s *SocialWeibo) UserInfo(token *oauth2.Token, _ *url.URL) (*BasicUserInfo,
 	return &BasicUserInfo{
 		Identity: token.Extra("uid"),
 		Name:     data.Name,
+	}, nil
+}
+
+// OpenShift
+
+type SocialOpenShift struct {
+	opts *oauth2.Options
+}
+
+func newOpenShiftOauth(opts *oauth2.Options) {
+	SocialMap["openshift"] = &SocialOpenShift{opts}
+}
+
+func (s *SocialOpenShift) Type() int {
+	return int(models.OPENSHIFT)
+}
+
+func (s *SocialOpenShift) UserInfo(token *oauth2.Token, _ *url.URL) (*BasicUserInfo, error) {
+	log.Info("UserInfo for openshift being invoked!")
+	transport := s.opts.NewTransportFromToken(token)
+	var data struct {
+		Metadata struct {
+			Name string `json:"name"`
+		} `json:"metadata"`
+	}
+	reqUrl := "https://os1.fabric8.io:8443/osapi/v1beta3/users/~"
+	r, err := transport.Client().Get(reqUrl)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Body.Close()
+
+	if err = json.NewDecoder(r.Body).Decode(&data); err != nil {
+		return nil, err
+	}
+	return &BasicUserInfo{
+		Identity: token.Extra("uid"),
+		Name:     data.Metadata.Name,
 	}, nil
 }
