@@ -489,7 +489,7 @@ type OauthInfo struct {
 // Oauther represents oauth service.
 type Oauther struct {
 	GitHub, Google, Tencent,
-	Twitter, Weibo bool
+	Twitter, Weibo, OpenShift bool
 	OauthInfos map[string]*OauthInfo
 }
 

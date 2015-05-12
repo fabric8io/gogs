@@ -19,6 +19,7 @@ const (
 	WEIBO
 	BITBUCKET
 	FACEBOOK
+	OPENSHIFT
 )
 
 var (
